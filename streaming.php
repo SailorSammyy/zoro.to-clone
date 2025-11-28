@@ -2,107 +2,242 @@
 require('./_config.php');
 session_start();
 
-
-
-
-$parts = parse_url($_SERVER['REQUEST_URI']);
-$page_url = explode('/', $parts['path']);
-$url = $page_url[count($page_url) - 1];
-//$url = "naruto-episode-2";
-$animeID = explode('-episode-', $url);
-
-$animeID = $animeID[0];
-$slug = explode('-', $animeID);
-$dub = "";
-if (end($slug) == 'dub') {
-    $dub = "dub";
-} else {
-    $dub = "sub";
-}
-;
-
-$getEpisode = file_get_contents("$api/getEpisode/$url");
-$getEpisode = json_decode($getEpisode, true);
-if (isset($getEpisode['error'])) {
-    header('Location: home.php');
-}
-;
-
-
-
-$pageID = $url;
-
-$CurPageURL = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-$pageUrl = $CurPageURL;
-
-//check for count
-$query = mysqli_query($conn, "SELECT * FROM `pageview` WHERE pageID = '$pageID'");
-$rows = mysqli_fetch_array($query);
-$counter = $rows['totalview'];
-
-$id = $rows['id'];
-if (empty($counter)) {
-    $counter = 1;
-    mysqli_query($conn, "INSERT INTO `pageview` (pageID,totalview,like_count,dislike_count,animeID) VALUES('$pageID','$counter','1','0','$animeID')");
-    header('Location: //' . $pageUrl);
-}
-;
-
-
-
-$anime = $getEpisode['anime_info'];
-$EPISODE_NUMBER = $getEpisode['ep_num'];
-$download = str_replace("Gogoanime", "$websiteTitle", $getEpisode['ep_download']);
-
-$streamingID = $download;
-$streamingID = parse_url($streamingID);
-parse_str($streamingID['query'], $streamingPID);
-$streamingID = $streamingPID['id'];
-$animeTitle = $streamingPID['title'];
-
-$getAnime = file_get_contents("$api/getAnime/$anime");
-$getAnime = json_decode($getAnime, true);
-
-$animeSearch = trim($anime, "-dub");
-
-$episodelist = $getAnime['episode_id'];
-$firstEpID = $episodelist[0];
-$firstEpID = $firstEpID['episodeId'];
-
-
-$ANIME_RELEASED = $getAnime['released'];
-$ANIME_name = $getAnime['name'];
-$ANIME_NAME = rtrim($getAnime['name']);
-$ANIME_IMAGE = $getAnime['imageUrl'];
-$ANIME_TYPE = $getAnime['type'];
-
-//increase counters by 1 on page load
-$counter = $counter + 1;
-mysqli_query($conn, "UPDATE `pageview` SET totalview ='$counter' WHERE pageID = '$pageID'");
-$like_count = $rows['like_count'];
-$dislike_count = $rows['dislike_count'];
-$totalVotes = $like_count + $dislike_count;
-
-if (isset($_COOKIE['userID'])) {
-    $userID = $_COOKIE['userID'];
-
-    $user_history = mysqli_query($conn, "SELECT * FROM `user_history` WHERE (user_id,anime_id) = ('$userID', '$url')");
-    $user_history = mysqli_fetch_assoc($user_history);
-    $user_history_anime_id = $user_history['anime_id'];
-    $user_history_id = $user_history['id'];
-    //echo  $user_history_id ;
-
-    if (empty($user_history_anime_id)) {
-        mysqli_query($conn, "INSERT INTO `user_history` (user_id,anime_id,anime_title,anime_ep,anime_image,anime_release,dubOrSub,anime_type)
-        VALUES('$userID','$url','$ANIME_name','$EPISODE_NUMBER','$ANIME_IMAGE','$ANIME_RELEASED','$dub','$ANIME_TYPE')");
-    } elseif ($user_history_anime_id == $url) {
-        mysqli_query($conn, "DELETE FROM `user_history` WHERE id = '$user_history_id'");
-        mysqli_query($conn, "INSERT INTO `user_history` (user_id,anime_id,anime_title,anime_ep,anime_image,anime_release,dubOrSub,anime_type)
-        VALUES('$userID','$url','$ANIME_name','$EPISODE_NUMBER','$ANIME_IMAGE','$ANIME_RELEASED','$dub','$ANIME_TYPE')");
+/* ---------------- FAST HTTP fetch wrapper ---------------- */
+function fastFetch($url) {
+    // Try curl (faster)
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_CONNECTTIMEOUT => 2,
+            CURLOPT_TIMEOUT => 4,
+            CURLOPT_SSL_VERIFYPEER => false
+        ]);
+        $out = curl_exec($ch);
+        curl_close($ch);
+        if ($out) return $out;
     }
 
+    // Ultra-fast fallback (file_get_contents)
+    $ctx = stream_context_create([
+        'http' => ['timeout' => 3],
+        'https' => ['timeout' => 3]
+    ]);
+
+    return @file_get_contents($url, false, $ctx);
 }
+
+/* ---------- Parse URL ---------- */
+$pathParts = explode('/', trim($_SERVER['REQUEST_URI'], '/'));
+$slug = end($pathParts);
+
+if (!str_contains($slug, '-episode-')) {
+    header("Location: /watch/" . $slug . "-episode-1");
+    exit;
+}
+
+if (preg_match('/^(.+)-episode-([0-9]+)$/', $slug, $m)) {
+    $animeID = $m[1];
+    $epNumber = max(1, intval($m[2]));
+} else {
+    header("Location: /watch/" . $slug . "-episode-1");
+    exit;
+}
+
+$anime = $animeID;
+
+/* ---------- Episodes list ---------- */
+$apiBase = rtrim($api, '/');
+$episodesUrl = "$apiBase/api/v2/hianime/anime/" . urlencode($animeID) . "/episodes";
+
+$episodesJson = fastFetch($episodesUrl);
+$episodesData = $episodesJson ? json_decode($episodesJson, true, 512, JSON_INVALID_UTF8_IGNORE) : null;
+
+$rawEpisodes = $episodesData['data']['episodes'] ?? [];
+
+$episodelist = [];
+$realEpisodeId = null;
+$megaep = null;
+
+foreach ($rawEpisodes as $ep) {
+    $num = $ep['number'] ?? ($ep['episodeNum'] ?? null);
+    if (!$num) continue;
+
+    $num = intval($num);
+    $apiEpId = $ep['episodeId'] ?? '';
+    $title = $ep['title'] ?? '';
+
+    // Fast extract
+    if ($apiEpId && ($pos = strpos($apiEpId, '?ep=')) !== false) {
+        $thisMegaep = intval(substr($apiEpId, $pos + 4));
+    } else {
+        $thisMegaep = null;
+    }
+
+    if ($num === $epNumber) {
+        $realEpisodeId = $apiEpId;
+        $megaep = $thisMegaep;
+    }
+
+    $episodelist[] = [
+        'episodeNum'  => $num,
+        'episodeId'   => $animeID . "-episode-$num",
+        'title'       => $title,
+        'apiEpisodeId'=> $apiEpId,
+        'megaep'      => $thisMegaep
+    ];
+}
+
+if (!$realEpisodeId) {
+    header("Location: /watch/" . $animeID . "-episode-1");
+    exit;
+}
+
+/* ---------- Servers ---------- */
+$serverUrl = "$apiBase/api/v2/hianime/episode/servers?animeEpisodeId=" . urlencode($realEpisodeId);
+
+$serverJson = fastFetch($serverUrl);
+$getEpisode = $serverJson ? json_decode($serverJson, true, 512, JSON_INVALID_UTF8_IGNORE) : null;
+
+if (!isset($getEpisode['data'])) {
+    $getEpisode = [
+        'success' => false,
+        'data' => ['sub' => [], 'dub' => [], 'raw' => []]
+    ];
+}
+
+$getEpisode['ep_num'] = $epNumber;
+$getEpisode['episodeId'] = $realEpisodeId;
+$getEpisode['animeNameWithEP'] = ($getEpisode['data']['animeName'] ?? $animeID) . " Episode $epNumber";
+
+/* ---------- Stream Selection ---------- */
+$availableStreams = ['sub','dub','raw'];
+$req = $_GET['category'] ?? null;
+$requestedCategory = $req ? strtolower(trim($req)) : null;
+
+$preferredOrder = $requestedCategory && in_array($requestedCategory, $availableStreams)
+    ? [$requestedCategory]
+    : $availableStreams;
+
+$selectedStream = null;
+$dub = 'sub';
+
+foreach ($preferredOrder as $cat) {
+    if (!empty($getEpisode['data'][$cat])) {
+        $selectedStream = $getEpisode['data'][$cat][0];
+        $dub = $cat;
+        break;
+    }
+}
+if (!$selectedStream) $selectedStream = ['serverId'=>1,'serverName'=>'unknown'];
+
+$playerServerId = $selectedStream['serverId'] ?? 1;
+$playerCategory = $dub;
+
+$playerSrc = $websiteUrl . "/player/v1.php?animeEpisodeId=" . urlencode($realEpisodeId)
+    . "&server=" . $playerServerId
+    . "&category=" . $playerCategory;
+
+/* ---------- Anime info ---------- */
+$animeUrl = "$apiBase/api/v2/hianime/anime/" . urlencode($animeID);
+
+$animeJson = fastFetch($animeUrl);
+$getAnime = $animeJson ? json_decode($animeJson, true, 512, JSON_INVALID_UTF8_IGNORE) : null;
+
+$animeRoot = $getAnime['data']['anime'][0] ?? [];
+$info = $animeRoot['info'] ?? [];
+$more = $animeRoot['moreInfo'] ?? [];
+
+
+$animeName = $animeRoot['data']['anime']['info']['name'];
+$animePoster = $animeRoot['data']['anime']['info']['poster'];
+$animeDescription = $animeRoot['data']['anime']['info']['description'];
+
+$getAnime['name'] = $info['name'] ?? $animeID;
+$getAnime['synopsis'] = $info['description'] ?? '';
+$getAnime['imageUrl'] = $info['poster'];
+$getAnime['status'] = $more['status'] ?? '';
+$getAnime['released'] = $more['aired'] ?? '';
+$getAnime['othername'] = $info['othername'] ?? '';
+$getAnime['type'] = $info['stats']['type'] ?? '';
+
+$ANIME_NAME = $getAnime['name'];
+$ANIME_IMAGE = $getAnime['imageUrl'];
+$ANIME_RELEASED = $getAnime['released'];
+$ANIME_TYPE = $getAnime['type'] ?? '';
+
+/* ---------- Pageview counter ---------- */
+$pageID = $realEpisodeId;
+$escapedPageID = mysqli_real_escape_string($conn, $pageID);
+
+$q = mysqli_query($conn, "SELECT * FROM `pageview` WHERE pageID='$escapedPageID' LIMIT 1");
+$rows = mysqli_fetch_assoc($q);
+
+if (!$rows) {
+    $escapedAnime = mysqli_real_escape_string($conn, $animeID);
+    mysqli_query($conn,
+        "INSERT INTO pageview (pageID,totalview,like_count,dislike_count,animeID)
+         VALUES('$escapedPageID',1,1,0,'$escapedAnime')"
+    );
+    $insertId = mysqli_insert_id($conn);
+    $q2 = mysqli_query($conn, "SELECT * FROM pageview WHERE id='$insertId' LIMIT 1");
+    $rows = mysqli_fetch_assoc($q2);
+}
+
+$counter = intval($rows['totalview'] ?? 0) + 1;
+$id = intval($rows['id'] ?? 0);
+
+if ($id) {
+    mysqli_query($conn, "UPDATE pageview SET totalview=$counter WHERE id=$id");
+}
+
+$like_count = intval($rows['like_count'] ?? 0);
+$dislike_count = intval($rows['dislike_count'] ?? 0);
+$totalVotes = $like_count + $dislike_count;
+
+/* ---------- User history ---------- */
+if (!empty($_COOKIE['userID'])) {
+    $userID = mysqli_real_escape_string($conn, $_COOKIE['userID']);
+    $uh_q = mysqli_query($conn,
+        "SELECT * FROM user_history WHERE user_id='$userID' AND anime_id='$escapedPageID' LIMIT 1"
+    );
+    $uh = mysqli_fetch_assoc($uh_q);
+
+    $sqlInsert = "INSERT INTO user_history (user_id,anime_id,anime_title,anime_ep,anime_image,anime_release,dubOrSub,anime_type)
+        VALUES('$userID','$escapedPageID','".mysqli_real_escape_string($conn, $ANIME_NAME)."','$epNumber',
+        '".mysqli_real_escape_string($conn, $ANIME_IMAGE)."','".mysqli_real_escape_string($conn, $ANIME_RELEASED)."',
+        '".mysqli_real_escape_string($conn, $playerCategory)."','".mysqli_real_escape_string($conn, $ANIME_TYPE)."')";
+
+    if (!$uh) {
+        mysqli_query($conn, $sqlInsert);
+    } else {
+        mysqli_query($conn, "DELETE FROM user_history WHERE id=" . intval($uh['id']));
+        mysqli_query($conn, $sqlInsert);
+    }
+}
+
+/* ---------- Legacy vars ---------- */
+$url = $realEpisodeId;
+
+$getEpisode['prevEpLink'] = $getEpisode['data']['prevEpLink'] ?? ($epNumber>1 ? "/watch/{$animeID}-episode-".($epNumber-1) : "");
+$getEpisode['nextEpLink'] = $getEpisode['data']['nextEpLink'] ?? ("/watch/{$animeID}-episode-".($epNumber+1));
+$getEpisode['prevEpText'] = $epNumber>1 ? "Episode ".($epNumber-1) : "";
+$getEpisode['nextEpText'] = "Episode ".($epNumber+1);
+
+$getEpisode['animeNameWithEP'] = $ANIME_NAME . " Episode $epNumber";
+$getEpisode['ep_num'] = $epNumber;
+$getEpisode['selectedStream'] = $selectedStream;
+$getEpisode['playerSrc'] = $playerSrc;
+
+$download = $websiteUrl . "/download/" . urlencode($realEpisodeId);
+
+$firstEpID = $episodelist[0]['episodeId'] ?? ($animeID . "-episode-1");
+
+$recent_limit = 10;
+
 ?>
+
 <!DOCTYPE html>
 <html prefix="og: http://ogp.me/ns#" xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
@@ -209,7 +344,7 @@ if (isset($_COOKIE['userID'])) {
                                         </div>
                                         <!---recommended to use Anikatsu Servers only ---->
                                         <iframe name="iframe-to-load"
-                                            src="<?=$websiteUrl?>/player/v1.php?id=<?= $url ?>" frameborder="0"
+                                            src="https://megaplay.buzz/stream/s-2/<?=$megaep?>/sub" frameborder="0"
                                             scrolling="no"
                                             allow="accelerometer;autoplay;encrypted-media;gyroscope;picture-in-picture"
                                             allowfullscreen="true" webkitallowfullscreen="true"
@@ -272,15 +407,17 @@ if (isset($_COOKIE['userID'])) {
                                             <div class="ps__-title"><i class="fas fa-server mr-2"></i>SERVERS:</div>
                                             <div class="ps__-list">
                                                 <div class="item">
-                                                    <a id="server1" href="<?=$websiteUrl?>/player/v1.php?id=<?= $url ?>"
-                                                        target="iframe-to-load" class="btn btn-server active">Server
-                                                        1</a>
+                                                    <a id="server1" href="https://megaplay.buzz/stream/s-2/<?=$megaep?>/sub"
+                                                        target="iframe-to-load" class="btn btn-server active">SUB</a>
                                                 </div>
-                                                <div class="item">
-                                                    <a id="server2"
-                                                        href="<?=$websiteUrl?>/player/v2.php?id=<?= $url ?>"
-                                                        target="iframe-to-load" class="btn btn-server">Server 2</a>
-                                                </div>
+                                        <?php if (!empty($getEpisode['data']['dub'])): ?>
+    <div class="item">
+        <a id="server2"
+            href="https://megaplay.buzz/stream/s-2/<?=$megaep?>/dub"
+            target="iframe-to-load" class="btn btn-server">DUB</a>
+    </div>
+<?php endif; ?>
+
                                             </div>
                                             <div class="clearfix"></div>
                                             <div id="source-guide"></div>
@@ -333,22 +470,33 @@ if (isset($_COOKIE['userID'])) {
                             </div>
                             <div class="anis-watch-detail">
                                 <div class="anis-content">
-                                    <div class="anisc-poster">
-                                        <div class="film-poster">
-                                            <img src="<?= $getAnime['imageUrl'] ?>" data-src="<?= $getAnime['imageUrl'] ?>"
-                                                class="film-poster-img ls-is-cached lazyloaded"
-                                                alt="<?= $getAnime['name'] ?>">
-                                        </div>
-                                    </div>
-                                    <div class="anisc-detail">
-                                        <h2 class="film-name">
-                                            <a href="/anime/<?= $anime ?>" class="text-white dynamic-name"
-                                                title="<?= $getAnime['name'] ?>" data-jname="<?= $getAnime['name'] ?>"
-                                                style="opacity: 1;"><?= $getAnime['name'] ?></a>
-                                        </h2>
+                      <div class="anisc-poster">
+    <div class="film-poster">
+        <img src="<?= $getAnime['imageUrl'] ?>"
+             class="film-poster-img lazyloaded"
+             alt="<?= $getAnime['name'] ?>">
+    </div>
+</div>
+
+<div class="anisc-detail">
+    <h2 class="film-name">
+        <a href="/anime/<?= urlencode($animeID) ?>"
+           class="text-white dynamic-name"
+           title="<?= $getAnime['name'] ?>"
+           data-jname="<?= $getAnime['name'] ?>"
+           style="opacity: 1;">
+           <?= $getAnime['name'] ?>
+        </a>
+    </h2>
+</div>
+
                                         <div class="film-stats">
                                             <div class="tac tick-item tick-quality">HD</div>
                                             <div class="tac tick-item tick-dub">SUB</div>
+<?php if (!empty($getEpisode['data']['dub'])): ?>
+    <div class="tac tick-item tick-dub">DUB</div>
+<?php endif; ?>
+
                                             <div class="tac tick-item tick-dub">
                                                 <?php if ($counter) {
                                                     echo "VIEWS: " . $counter;
@@ -375,16 +523,16 @@ if (isset($_COOKIE['userID'])) {
                                         </div>
                                         <div class="film-description m-hide">
                                             <div class="text">
-                                                <?= $getAnime['synopsis'] ?>
+                                                <?= $animeDescription ?>
                                             </div>
                                         </div>
                                         <div class="film-text m-hide mb-3">
                                             <?= $websiteTitle ?> is a site to watch online anime like
                                             <strong>
-                                                <?= $getAnime['name'] ?>
+                                                <?= $animeName ?>
                                             </strong> online, or you can even watch
                                             <strong>
-                                                <?= $getAnime['name'] ?>
+                                                <?= $animeName ?>
                                             </strong> in HD quality
                                         </div>
                                         <div class="block"><a href="/anime/<?= $anime ?>" class="btn btn-xs btn-light"><i
