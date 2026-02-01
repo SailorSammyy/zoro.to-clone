@@ -11,7 +11,6 @@ This project is a revival of an anime streaming platform. Feel free to customize
 - **PHP**: 7.4 or higher
 - **MySQL**: 5.7 or higher (or MariaDB)
 - **Web Server**: Apache with mod_rewrite enabled
-- **Extensions**: mysqli, json, curl
 
 ### Development Environment
 - **XAMPP** (recommended for local development)
@@ -94,7 +93,27 @@ This project is open source and available under the [MIT License](LICENSE).
 - **Font Awesome** - For beautiful icons
 - **jQuery** - For interactive functionality
 
-## 📋 TODO - Zoro.to Clone Roadmap
+## � Changelog
+
+### Version 0.2 (Current)
+#### 🎉 Major Features Added
+- **Enhanced Streaming Page**
+  - ✅ Fixed episode active state.
+  - ✅ Improved dub/sub switching
+  - ✅ Added episode number display
+
+- **Anime Details Page**
+  - ✅ Fixed "Watch Now" button to properly link to first episode using correct API structure
+
+#### 🐛 Bug Fixes
+- ✅ Fixed duplicate entry error in watchlist functionality
+- ✅ Resolved episode ID parsing problems
+
+#### 🏠 Homepage Updates
+- ✅ Fixed anime link URLs to point to `/anime/{id}` instead of direct episode links
+- ✅ Updated sidebar and recent releases sections
+
+## �📋 TODO - Zoro.to Clone Roadmap
 
 
 - [x] **Authentication System**
@@ -104,7 +123,6 @@ This project is open source and available under the [MIT License](LICENSE).
 
 - [ ] **Search**
   - [ ] Advanced search filters
-  - [ ] Recently added anime section
 
 - [ ] **Features**
   - [ ] Comment system for episodes
@@ -118,7 +136,7 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-## 💬 Community & Support
+## Community & Support
 
 [![Join our Discord server!](https://invidget.switchblade.xyz/SUsQnPWvxT)](https://discord.com/invite/SUsQnPWvxT)
 
