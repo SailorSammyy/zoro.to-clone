@@ -32,13 +32,13 @@
                                 src="<?php echo htmlspecialchars($websiteUrl); ?>/files/images/no_poster.jpg"
                                 alt="<?php echo htmlspecialchars($anime['name']); ?>">
                             <a class="film-poster-ahref"
-                                href="/watch/<?php echo htmlspecialchars($anime['id']); ?>-episode-<?php echo $anime['episodes']['sub'] ?? $anime['episodes']['dub'] ?? 1; ?>"
+                                href="/anime/<?php echo htmlspecialchars($anime['id']); ?>"
                                 title="<?php echo htmlspecialchars($anime['name']); ?>"
                                 data-jname="<?php echo htmlspecialchars($anime['jname']); ?>"><i class="fas fa-play"></i></a>
                         </div>
                         <div class="film-detail">
                             <h3 class="film-name">
-                                <a href="/watch/<?php echo htmlspecialchars($anime['id']); ?>-episode-<?php echo $anime['episodes']['sub'] ?? $anime['episodes']['dub'] ?? 1; ?>"
+                                <a href="/anime/<?php echo htmlspecialchars($anime['id']); ?>"
                                     title="<?php echo htmlspecialchars($anime['name']); ?>"
                                     data-jname="<?php echo htmlspecialchars($anime['jname']); ?>">
                                     <?php echo htmlspecialchars($anime['name']); ?>

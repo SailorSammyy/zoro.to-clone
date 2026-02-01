@@ -37,10 +37,8 @@
                     <div class="desi-description"><?= htmlspecialchars($anime['description']) ?></div>
                 </div>
                 <div class="desi-buttons">
-                    <a href="/watch/<?= htmlspecialchars($anime['id']) ?>-episode-1" class="btn btn-primary btn-radius mr-2">
+                    <a href="<?php echo $websiteUrl; ?>/anime/<?= htmlspecialchars($anime['id']) ?>" class="btn btn-primary btn-radius mr-2">
                         <i class="fas fa-play-circle mr-2"></i>Watch Now</a>
-                    <a class="btn btn-secondary btn-radius" href="/anime/<?= htmlspecialchars($anime['id']) ?>">
-                        <i class="fas fa-info-circle mr-2"></i> Detail<i class="fas fa-angle-right ml-2"></i></a>
                 </div>
             </div>
             <div class="clearfix"></div>

@@ -14,7 +14,7 @@ $currentDate = date('Y-m-d');
 $scheduleData = [];
 for ($i = -1; $i <= 6; $i++) {
     $date = date('Y-m-d', strtotime("{$i} day", strtotime($currentDate)));
-    $scheduleUrl = "https://aniwatch-api1-two.vercel.app/api/v2/hianime/schedule?date={$date}";
+    $scheduleUrl = "$api/api/v2/hianime/schedule?date={$date}";
     $scheduleJson = @file_get_contents($scheduleUrl);
     if ($scheduleJson !== false) {
         $data = json_decode($scheduleJson, true);
@@ -147,12 +147,12 @@ for ($i = -1; $i <= 6; $i++) {
                                         <?php foreach (array_slice($topAiringAnimes, 0, 5) as $anime) { ?>
                                             <li>
                                                 <div class="film-poster item-qtip" data-id="<?= htmlspecialchars($anime['id']) ?>">
-                                                    <a href="/watch/<?= htmlspecialchars($anime['id']) ?>">
+                                                    <a href="/anime/<?= htmlspecialchars($anime['id']) ?>">
                                                         <img data-src="<?= htmlspecialchars($anime['poster']) ?>" class="film-poster-img lazyload" alt="<?= htmlspecialchars($anime['name']) ?>" src="<?= htmlspecialchars($websiteUrl) ?>/files/images/no_poster.jpg">
                                                     </a>
                                                 </div>
                                                 <div class="film-detail">
-                                                    <h3 class="film-name"><a href="/watch/<?= htmlspecialchars($anime['id']) ?>" title="<?= htmlspecialchars($anime['name']) ?>" data-jname="<?= htmlspecialchars($anime['jname']) ?>"><?= htmlspecialchars($anime['name']) ?></a></h3>
+                                                    <h3 class="film-name"><a href="/anime/<?= htmlspecialchars($anime['id']) ?>" title="<?= htmlspecialchars($anime['name']) ?>" data-jname="<?= htmlspecialchars($anime['jname']) ?>"><?= htmlspecialchars($anime['name']) ?></a></h3>
                                                     <div class="fd-infor">
                                                         <span class="fdi-item"><?= htmlspecialchars($anime['type']) ?></span>
                                                         <span class="dot"></span>
@@ -168,7 +168,6 @@ for ($i = -1; $i <= 6; $i++) {
                                     </ul>
                                     <div class="clearfix"></div>
                                 </div>
-                                <div class="more"><a href="/top-airing">View more <i class="fas fa-angle-right ml-2"></i></a></div>
                             </div>
                         </div>
                         <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12 col-xs-12">
@@ -179,12 +178,12 @@ for ($i = -1; $i <= 6; $i++) {
                                         <?php foreach (array_slice($mostPopularAnimes, 0, 5) as $anime) { ?>
                                             <li>
                                                 <div class="film-poster item-qtip" data-id="<?= htmlspecialchars($anime['id']) ?>">
-                                                    <a href="/watch/<?= htmlspecialchars($anime['id']) ?>">
+                                                    <a href="/anime/<?= htmlspecialchars($anime['id']) ?>">
                                                         <img data-src="<?= htmlspecialchars($anime['poster']) ?>" class="film-poster-img lazyload" alt="<?= htmlspecialchars($anime['name']) ?>" src="<?= htmlspecialchars($websiteUrl) ?>/files/images/no_poster.jpg">
                                                     </a>
                                                 </div>
                                                 <div class="film-detail">
-                                                    <h3 class="film-name"><a href="/watch/<?= htmlspecialchars($anime['id']) ?>" title="<?= htmlspecialchars($anime['name']) ?>" data-jname="<?= htmlspecialchars($anime['jname']) ?>"><?= htmlspecialchars($anime['name']) ?></a></h3>
+                                                    <h3 class="film-name"><a href="/anime/<?= htmlspecialchars($anime['id']) ?>" title="<?= htmlspecialchars($anime['name']) ?>" data-jname="<?= htmlspecialchars($anime['jname']) ?>"><?= htmlspecialchars($anime['name']) ?></a></h3>
                                                     <div class="fd-infor">
                                                         <span class="fdi-item"><?= htmlspecialchars($anime['type']) ?></span>
                                                         <span class="dot"></span>
@@ -200,7 +199,6 @@ for ($i = -1; $i <= 6; $i++) {
                                     </ul>
                                     <div class="clearfix"></div>
                                 </div>
-                                <div class="more"><a href="/most-popular">View more <i class="fas fa-angle-right ml-2"></i></a></div>
                             </div>
                         </div>
                         <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12 col-xs-12">
@@ -211,12 +209,12 @@ for ($i = -1; $i <= 6; $i++) {
                                         <?php foreach (array_slice($mostFavoriteAnimes, 0, 5) as $anime) { ?>
                                             <li>
                                                 <div class="film-poster item-qtip" data-id="<?= htmlspecialchars($anime['id']) ?>">
-                                                    <a href="/watch/<?= htmlspecialchars($anime['id']) ?>">
+                                                    <a href="/anime/<?= htmlspecialchars($anime['id']) ?>">
                                                         <img data-src="<?= htmlspecialchars($anime['poster']) ?>" class="film-poster-img lazyload" alt="<?= htmlspecialchars($anime['name']) ?>" src="<?= htmlspecialchars($websiteUrl) ?>/files/images/no_poster.jpg">
                                                     </a>
                                                 </div>
                                                 <div class="film-detail">
-                                                    <h3 class="film-name"><a href="/watch/<?= htmlspecialchars($anime['id']) ?>" title="<?= htmlspecialchars($anime['name']) ?>" data-jname="<?= htmlspecialchars($anime['jname']) ?>"><?= htmlspecialchars($anime['name']) ?></a></h3>
+                                                    <h3 class="film-name"><a href="/anime/<?= htmlspecialchars($anime['id']) ?>" title="<?= htmlspecialchars($anime['name']) ?>" data-jname="<?= htmlspecialchars($anime['jname']) ?>"><?= htmlspecialchars($anime['name']) ?></a></h3>
                                                     <div class="fd-infor">
                                                         <span class="fdi-item"><?= htmlspecialchars($anime['type']) ?></span>
                                                         <span class="dot"></span>
@@ -232,7 +230,6 @@ for ($i = -1; $i <= 6; $i++) {
                                     </ul>
                                     <div class="clearfix"></div>
                                 </div>
-                                <div class="more"><a href="/most-favorite">View more <i class="fas fa-angle-right ml-2"></i></a></div>
                             </div>
                         </div>
                         <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12 col-xs-12">
@@ -243,12 +240,12 @@ for ($i = -1; $i <= 6; $i++) {
                                         <?php foreach (array_slice($latestCompletedAnimes, 0, 5) as $anime) { ?>
                                             <li>
                                                 <div class="film-poster item-qtip" data-id="<?= htmlspecialchars($anime['id']) ?>">
-                                                    <a href="/watch/<?= htmlspecialchars($anime['id']) ?>">
+                                                    <a href="/anime/<?= htmlspecialchars($anime['id']) ?>">
                                                         <img data-src="<?= htmlspecialchars($anime['poster']) ?>" class="film-poster-img lazyload" alt="<?= htmlspecialchars($anime['name']) ?>" src="<?= htmlspecialchars($websiteUrl) ?>/files/images/no_poster.jpg">
                                                     </a>
                                                 </div>
                                                 <div class="film-detail">
-                                                    <h3 class="film-name"><a href="/watch/<?= htmlspecialchars($anime['id']) ?>" title="<?= htmlspecialchars($anime['name']) ?>" data-jname="<?= htmlspecialchars($anime['jname']) ?>"><?= htmlspecialchars($anime['name']) ?></a></h3>
+                                                    <h3 class="film-name"><a href="/anime/<?= htmlspecialchars($anime['id']) ?>" title="<?= htmlspecialchars($anime['name']) ?>" data-jname="<?= htmlspecialchars($anime['jname']) ?>"><?= htmlspecialchars($anime['name']) ?></a></h3>
                                                     <div class="fd-infor">
                                                         <span class="fdi-item"><?= htmlspecialchars($anime['type']) ?></span>
                                                         <span class="dot"></span>
@@ -264,7 +261,6 @@ for ($i = -1; $i <= 6; $i++) {
                                     </ul>
                                     <div class="clearfix"></div>
                                 </div>
-                                <div class="more"><a href="/latest-completed">View more <i class="fas fa-angle-right ml-2"></i></a></div>
                             </div>
                         </div>
                         <div class="clearfix"></div>
@@ -308,13 +304,13 @@ for ($i = -1; $i <= 6; $i++) {
                                         <img class="film-poster-img lazyload" data-src="<?= $rows['anime_image'] ?>"
                                             src="<?= $websiteUrl ?>/files/images/no_poster.jpg"
                                             alt="<?= $rows['anime_title'] ?>">
-                                        <a class="film-poster-ahref" href="/watch/<?= $rows['anime_id'] ?>"
+                                        <a class="film-poster-ahref" href="/anime/<?= $rows['anime_id'] ?>"
                                             title="<?= $rows['anime_title'] ?>" data-jname="<?= $rows['anime_title'] ?>"><i
                                                 class="fas fa-play"></i></a>
                                     </div>
                                     <div class="film-detail">
                                         <h3 class="film-name">
-                                            <a href="/watch/<?= $rows['anime_id'] ?>" title="<?= $rows['anime_title'] ?>"
+                                            <a href="/anime/<?= $rows['anime_id'] ?>" title="<?= $rows['anime_title'] ?>"
                                                 data-jname="<?= $rows['anime_title'] ?>"><?= $rows['anime_title'] ?></a>
                                         </h3>
                                         <div class="fd-infor">
@@ -364,13 +360,13 @@ for ($i = -1; $i <= 6; $i++) {
                                                 src="<?= htmlspecialchars($websiteUrl) ?>/files/images/no_poster.jpg"
                                                 alt="<?= htmlspecialchars($anime['name']) ?>">
                                             <a class="film-poster-ahref" 
-                                                href="/watch/<?= htmlspecialchars($anime['id']) ?>-episode-<?= $anime['episodes']['sub'] ?>"
+                                                href="/anime/<?= htmlspecialchars($anime['id']) ?><?= $anime['episodes']['sub'] ?>"
                                                 title="<?= htmlspecialchars($anime['name']) ?>"
                                                 data-jname="<?= htmlspecialchars($anime['jname']) ?>"><i class="fas fa-play"></i></a>
                                         </div>
                                         <div class="film-detail">
                                             <h3 class="film-name">
-                                                <a href="/watch/<?= htmlspecialchars($anime['id']) ?>-episode-<?= $anime['episodes']['sub'] ?>"
+                                                <a href="/anime/<?= htmlspecialchars($anime['id']) ?>-episode-<?= $anime['episodes']['sub'] ?>"
                                                     title="<?= htmlspecialchars($anime['name']) ?>"
                                                     data-jname="<?= htmlspecialchars($anime['jname']) ?>">
                                                     <?= htmlspecialchars($anime['name']) ?>
@@ -432,7 +428,7 @@ for ($i = -1; $i <= 6; $i++) {
                                 <ul class="ulclear table_schedule-list limit-8" id="schedule-list">
                                     <?php foreach ($scheduleData[$currentDate] ?? [] as $anime): ?>
                                         <li data-timestamp="<?= $anime['airingTimestamp'] ?>" data-id="<?= htmlspecialchars($anime['id']) ?>">
-                                            <a href="/watch/<?= htmlspecialchars($anime['id']) ?>" class="tsl-link">
+                                            <a href="/anime/<?= htmlspecialchars($anime['id']) ?>" class="tsl-link">
                                                 <div class="time"><?= htmlspecialchars($anime['time']) ?></div>
                                                 <div class="film-detail">
                                                     <h3 class="film-name dynamic-name" data-jname="<?= htmlspecialchars($anime['jname']) ?>"><?= htmlspecialchars($anime['name']) ?></h3>
@@ -497,7 +493,7 @@ for ($i = -1; $i <= 6; $i++) {
                     animes.forEach(anime => {
                         html += `
                             <li data-timestamp="${anime.airingTimestamp}" data-id="${anime.id}">
-                                <a href="/watch/${anime.id}" class="tsl-link">
+                                <a href="/anime/${anime.id}" class="tsl-link">
                                     <div class="time">${anime.time}</div>
                                     <div class="film-detail">
                                         <h3 class="film-name dynamic-name" data-jname="${anime.jname}">${anime.name}</h3>

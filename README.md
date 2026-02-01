@@ -5,14 +5,6 @@
 This project is a revival of an anime streaming platform. Feel free to customize it as you like!
 
 
-## 🛠️ Tech Stack
-
-- PHP 7.4+
-- **Database**: MySQL/MariaDB
-- **Frontend**: HTML5, CSS3, JavaScript (jQuery)
-- **Styling**: Bootstrap 4, Font Awesome
-- **API**: [AniWatch API](https://github.com/ghoshRitesh12/aniwatch-api)
-
 ## 📋 Requirements
 
 ### System Requirements
@@ -33,10 +25,7 @@ cd zoro.to-clone
 ```
 
 ### 2. Database Setup
-1. Import the database schema:
-   ```sql
-   mysql -u root -p < AutoAnime.sql
-   ```
+1. Import the database schema
 2. Create a database named `anime` (or your preferred name)
 
 ### 3. Configuration
@@ -90,29 +79,9 @@ $banner = $websiteUrl . "/files/images/banner.png";
 | `password` | DB password | `` (empty for localhost) |
 | `database` | Database name | `anime` |
 
-## 🌐 Deployment
-
-### Shared Hosting
-1. Upload all files to your hosting directory
-2. Import `AutoAnime.sql` to your database
-3. Update `_config.php` with your hosting details
-4. Ensure `.htaccess` is uploaded and working
-
-### VPS/Dedicated Server
-1. Set up LAMP stack (Linux, Apache, MySQL, PHP)
-2. Configure virtual host
-3. Enable mod_rewrite
-4. Set proper file permissions
-
 ## 🤝 Contributing
 
-We welcome contributions! Here's how you can help:
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/feature`)
-3. **Commit** your changes (`git commit -m 'Add feature'`)
-4. **Push** to the branch (`git push origin feature/feature`)
-5. **Open** a Pull Request
+We welcome contributions! Feel free to commit, suggest improvements, or add new features.
 
 ## 📝 License
 
@@ -171,8 +140,7 @@ This project is open source and available under the [MIT License](LICENSE).
 - **Discord**: Join our community for support and discussions
 - **Issues**: Report bugs or request features on GitHub
 
-### 🤝 Contributing to TODO Items
-Want to help with any of these features? Check out our [Contributing Guidelines](#-contributing) and pick an item from the TODO list!
+
 
 ---
 

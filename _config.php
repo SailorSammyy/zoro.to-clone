@@ -7,7 +7,7 @@ $websiteUrl = "//{$_SERVER['SERVER_NAME']}/zoro";
 $websiteLogo = $websiteUrl . "/files/images/logo_zoro.png";
 $contactEmail = "@gmail.com";
 
-$version = "0.11112";
+$version = "0.2";
 
 $discord = "https://dsc.gg/kirixen";
 $github = "https://github.com/kirixen";
