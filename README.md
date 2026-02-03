@@ -93,50 +93,7 @@ This project is open source and available under the [MIT License](LICENSE).
 - **Font Awesome** - For beautiful icons
 - **jQuery** - For interactive functionality
 
-## � Changelog
 
-### Version 0.2 (Current)
-#### 🎉 Major Features Added
-- **Enhanced Streaming Page**
-  - ✅ Fixed episode active state.
-  - ✅ Improved dub/sub switching
-  - ✅ Added episode number display
-
-- **Anime Details Page**
-  - ✅ Fixed "Watch Now" button to properly link to first episode using correct API structure
-
-#### 🐛 Bug Fixes
-- ✅ Fixed duplicate entry error in watchlist functionality
-- ✅ Resolved episode ID parsing problems
-
-#### 🏠 Homepage Updates
-- ✅ Fixed anime link URLs to point to `/anime/{id}` instead of direct episode links
-- ✅ Updated sidebar and recent releases sections
-
-## TODO - Zoro.to Clone Roadmap
-
-
-- [x] **Authentication System**
-  - [x] Registration and login
-  - [x] Profile
-  - [x] Bookmark system
-  - [ ] Bookmark folders (like completed, plan to watch, etc.)
-  - [ ] Deleting account
-  - [ ] Import/Export list
-
-- [ ] **Search**
-  - [ ] Advanced search filters
-
-- [ ] **Features**
-  - [ ] Comment system for episodes
-        
-- [ ] **Performance**
-  - [ ] Caching system implementation
-
-- [ ] **Advanced Features**
-  - [ ] W2G functionality
-
----
 
 ## Community & Support
 
